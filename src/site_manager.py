@@ -10,12 +10,12 @@ from reasoning import extract_requirement, filter_by_requirement, explain
 DATA_PATH = "data/restaurant_info_extended.csv"
 
 WELCOME = ("Hello, welcome to the Cambridge restaurant recommendation system. "
-           "How may I help you? We can filter restraunts for you by area, cuisine and price. If you want to exit at any point, please type 'exit'.")
+           "How may I help you? We can filter restaurants for you by area, cuisine and price. If you want to exit at any point, please type 'exit'.")
 REQUIREMENT_QUESTION = ("Do you have any additional requirements? You can ask for somewhere "
                         "touristic, romantic, suitable for children, or with assigned seating.")
 MORE_INFO = "If you would like more information about the restaurant, please specify what you need.  For example, we can give you their address, phone number or postcode."
 NEXT_INFO = ("If you would like a different restaurant recommendation, please type 'next'. "
-             "If you would like more information about the restaurant, please specify what you need. For example, we can give you their address, phone number or postalcode.")
+             "If you would like more information about the restaurant, please specify what you need. For example, we can give you their address, phone number or postcode.")
 
 st.set_page_config(page_title="Cambridge Restaurant Recommender", page_icon="🍽️")
 S = st.session_state
