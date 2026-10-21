@@ -10,12 +10,12 @@ from reasoning import extract_requirement, filter_by_requirement, explain
 DATA_PATH = "data/restaurant_info_extended.csv"
 
 WELCOME = ("Hello, welcome to the Cambridge restaurant recommendation system. "
-           "How may I help you? If you want to exit at any point, please type 'exit'.")
+           "How may I help you? We can filter restraunts for you by area, cuisine and price. If you want to exit at any point, please type 'exit'.")
 REQUIREMENT_QUESTION = ("Do you have any additional requirements? You can ask for somewhere "
                         "touristic, romantic, suitable for children, or with assigned seating.")
-MORE_INFO = "If you would like more information about the restaurant, please specify what you need."
+MORE_INFO = "If you would like more information about the restaurant, please specify what you need.  For example, we can give you their address, phone number or postalcode."
 NEXT_INFO = ("If you would like a different restaurant recommendation, please type 'next'. "
-             "If you would like more information about the restaurant, please specify what you need.")
+             "If you would like more information about the restaurant, please specify what you need. For example, we can give you their address, phone number or postalcode.")
 
 st.set_page_config(page_title="Cambridge Restaurant Recommender", page_icon="🍽️")
 S = st.session_state
@@ -64,10 +64,6 @@ def reset_preferences():
 
 # ---------------------------------------------------------------- sidebar
 st.sidebar.header("Settings")
-st.sidebar.radio("Dialog mode", ["patient", "eager"], key="mode",
-                 help="Eager mode stops asking questions as soon as one preference is known.")
-st.sidebar.checkbox("Fuzzy keyword matching (Levenshtein)", value=True, key="use_leven")
-st.sidebar.checkbox("Show reasoning behind recommendations", value=True, key="show_reasoning")
 if st.sidebar.button("Restart conversation"):
     init_state()
     st.rerun()
@@ -86,19 +82,17 @@ def check_restaurant(path):
 
 
 def reasoning_line(restaurant):
-    if not S.show_reasoning or S.requirement is None:
+    if S.requirement is None:
         return ""
     return "\n\n" + explain(restaurant, S.requirement[0])
 
 
 def ask_next_question():
     """Returns the next question to ask, or None if nothing more is needed."""
-    if S.mode == "eager" and (S.area or S.food or S.price):
-        return None
     if S.area is None:
         return "Would you like to eat in the west, north, south, centre, or east Cambridge area?"
     if S.food is None:
-        return "What type of food would you like? For example, British, Italian, etc."
+        return "What type of cuisine would you like? For example, British, Italian, etc."
     if S.price is None:
         return "Are you looking for moderate, expensive, or cheap prices?"
     return None
@@ -178,8 +172,8 @@ def after_matching(utterance, matched):
         advance(ask_next_question())
 
 
-def run_leven(words, utterance, matched):
-    """Walks through the words; pauses when a fuzzy match needs the user's confirmation."""
+def keyword_matching(words, utterance, matched):
+    """Walks through the words; pauses when a match needs the user's confirmation."""
     while words:
         word = words.pop(0)
         match, perfect = levensthein_distance(word, leven_data)
@@ -192,32 +186,16 @@ def run_leven(words, utterance, matched):
     after_matching(utterance, matched)
 
 
-def keyword_matching(user_input, utterance):
-    if S.use_leven:
-        run_leven(user_input.split(), utterance, False)
-        return
-    area = next((a for a in areas if a in user_input), None)
-    food = next((f for f in food_types if f in user_input), None)
-    price = next((p for p in price_ranges if p in user_input), None)
-    if area is not None:
-        S.area = area
-    if food is not None:
-        S.food = food
-    if price is not None:
-        S.price = price
-    after_matching(utterance, area is not None or food is not None or price is not None)
-
-
 # ---------------------------------------------------------------- main handler
 def handle_utterance(user_input):
     utterance = model.predict(vec.transform([user_input]))[0]
 
     if utterance == "hello":
         say("Hello!")
-        keyword_matching(user_input, "hello")
+        keyword_matching(user_input.split(), utterance, False)
 
     elif utterance == "inform":
-        keyword_matching(user_input, "inform")
+        keyword_matching(user_input.split(), utterance, False)
 
     elif utterance == "request":
         if not S.restaurants:
@@ -254,11 +232,12 @@ def handle_utterance(user_input):
         S.ended = True
 
     else:
-        say("Sorry, I didn't understand that")
+        say("Sorry, I didn't understand that.")
         question = ask_next_question()
         if question is None and S.restaurants:
             say("Please try again.")
         else:
+            say("Please answer the next question.")
             advance(question)
 
 
@@ -277,7 +256,7 @@ def handle_input(user_input):
         matched = pending["matched"]
         if "yes" in user_input:
             matched = apply_match(pending["match"]) or matched
-        run_leven(pending["words"], pending["utterance"], matched)
+        keyword_matching(pending["words"], pending["utterance"], matched)
         return
 
     if pending and pending["type"] == "requirement":
@@ -293,7 +272,7 @@ def handle_input(user_input):
 
 
 # ---------------------------------------------------------------- UI
-st.title("🍽️ Cambridge Restaurant Recommender")
+st.title("Cambridge Restaurant Recommender")
 
 for role, text in S.messages:
     with st.chat_message(role):
