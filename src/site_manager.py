@@ -10,12 +10,11 @@ from reasoning import extract_requirement, filter_by_requirement, explain
 DATA_PATH = "data/restaurant_info_extended.csv"
 
 WELCOME = ("Hello, welcome to the Cambridge restaurant recommendation system. "
-           "How may I help you? We can filter restraunts for you by area, cuisine and price. If you want to exit at any point, please type 'exit'.")
-REQUIREMENT_QUESTION = ("Do you have any additional requirements? You can ask for somewhere "
-                        "touristic, romantic, suitable for children, or with assigned seating.")
-MORE_INFO = "If you would like more information about the restaurant, please specify what you need.  For example, we can give you their address, phone number or postcode."
+           "How may I help you? If you want to exit at any point, please type 'exit'.")
+REQUIREMENT_QUESTION = ("Do you have any additional requirements?")
+MORE_INFO = "If you would like more information about the restaurant, please specify what you need."
 NEXT_INFO = ("If you would like a different restaurant recommendation, please type 'next'. "
-             "If you would like more information about the restaurant, please specify what you need. For example, we can give you their address, phone number or postalcode.")
+             "If you would like more information about the restaurant, please specify what you need.")
 
 st.set_page_config(page_title="Cambridge Restaurant Recommender", page_icon="🍽️")
 S = st.session_state
@@ -90,11 +89,11 @@ def reasoning_line(restaurant):
 def ask_next_question():
     """Returns the next question to ask, or None if nothing more is needed."""
     if S.area is None:
-        return "Would you like to eat in the west, north, south, centre, or east Cambridge area?"
+        return "In what area of Cambridge would you like to eat?"
     if S.food is None:
-        return "What type of cuisine would you like? For example, British, Italian, etc."
+        return "What type of cuisine would you like?"
     if S.price is None:
-        return "Are you looking for moderate, expensive, or cheap prices?"
+        return "What kind of prices are you looking for?"
     return None
 
 
@@ -213,9 +212,7 @@ def handle_utterance(user_input):
                         lines.append(f"Sorry, we don't have the {k} of the restaurant {r['restaurantname']}.")
                 say("\n\n".join(lines) + "\n\n" + MORE_INFO)
             else:
-                say("Sorry, I didn't understand that, please ask for the phone number with "
-                    "'phone number', address with 'address', or postcode with 'postcode' "
-                    "of the restaurant.")
+                say("Sorry, I didn't understand that request.")
 
     elif utterance == "reqalts":
         S.idx += 1
@@ -237,7 +234,6 @@ def handle_utterance(user_input):
         if question is None and S.restaurants:
             say("Please try again.")
         else:
-            say("Please answer the next question.")
             advance(question)
 
 
