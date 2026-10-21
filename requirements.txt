@@ -1,0 +1,5 @@
+scikit-learn>=1.3
+joblib>=1.5
+torch>=2.0
+transformers>=4.40
+python-Levenshtein>=0.25
